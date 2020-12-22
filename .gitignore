@@ -1,0 +1,3 @@
+cmd/**/*.darwin
+cmd/**/*.linux
+cmd/**/*.windows.exe

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ import (
 // 	"github.com/TheCreeper/go-notify"
 
 const (
-	notifyDelay       = int32(5000) // mills
+	notifyDelay       = int32(10000) // mills
 	songInfoFrequency = time.Second
 )
 
@@ -41,29 +42,12 @@ func doMain() error {
 	}
 	defer ui.Close()
 
-	// go func() {
-	// 	ticker := time.Tick(5 * time.Second)
-	// 	for range ticker {
-	// 		logrus.Info("Tick was arrived!")
-	// 		v := ui.Eval(`
-	// 		let playPauseBtn = document.querySelector('.player-controls__play');
-	// 		console.log(playPauseBtn);
-	// 		if(playPauseBtn){
-	// 			playPauseBtn.click();
-	// 		}
-	// 		`)
-	// 		logrus.WithField("v", v).Info("Evaluated.")
-	// 		// v.Err().Error()
-	// 	}
-	// }()
-
 	go func() {
 		var (
 			playingNow   = ""
 			songInfoFile = hd + "/.current-song"
 			songImgFile  = hd + "/.current-song-img.png"
 		)
-		_ = songInfoFile
 		ticker := time.Tick(songInfoFrequency)
 		for range ticker {
 			tt := ui.Eval(`document.querySelector('.player-controls__title').title`)
@@ -83,8 +67,14 @@ func doMain() error {
 			}).Debug("Track info was got.")
 			if playingNow != "" && playingNow != trackInfo {
 				//https://developer.gnome.org/notification-spec/
-				ntf := notify.NewNotification("Yandex Radio", trackInfo)
+
+				ntf := notify.NewNotification("Yandex Radio", fmt.Sprintf("<b>%s</b> • %s",
+					html.EscapeString(tt.String()),
+					html.EscapeString(ta.String())),
+				)
 				ntf.Timeout = notifyDelay
+
+				// download album img
 				func() {
 					if ti != nil && len(ti.String()) > 7 {
 

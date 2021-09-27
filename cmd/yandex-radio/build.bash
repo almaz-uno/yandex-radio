@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $(dirname $(realpath $0))
+
 binary=yandex-radio
 
 GOOS=linux GOARCH=amd64 go build -o ${binary}.linux

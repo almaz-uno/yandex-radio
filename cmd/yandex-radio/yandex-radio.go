@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"html"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
@@ -126,7 +126,7 @@ func doMain(args []string) error {
 			}
 
 			trackInfo := fmt.Sprintf("%s • %s", tt, ta)
-			err := ioutil.WriteFile(songInfoFile, []byte(trackInfo), 0o664)
+			err := os.WriteFile(songInfoFile, []byte(trackInfo), 0o664)
 			if err != nil {
 				logrus.WithError(err).Warn("Unable to save song info file")
 			}
@@ -139,10 +139,13 @@ func doMain(args []string) error {
 				"ti":        ti,
 			}).Debug("Track info was got.")
 
-			albumInfo := ""
+			var (
+				albumInfo       = ""
+				existsAlbumInfo = ui.Eval(`document.querySelector('.slider__item_playing div span').title`).String()
+				existsArtist    = ui.Eval(`document.querySelector('.player-controls__artists').innerText`).String()
+			)
 
-			if playingNow != "" && playingNow != trackInfo {
-
+			if existsAlbumInfo == "" || existsArtist == ta.String() {
 				if len(albumID) > 0 {
 
 					al, err := getAlbumInfo(albumID)
@@ -154,10 +157,13 @@ func doMain(args []string) error {
 
 					albumInfo = fmt.Sprintf("%s (%d)", al.Title, al.Year)
 
-					ui.Eval(`document.querySelector('.slider__item_playing div span').title="` + html.EscapeString(albumInfo) + `"`)
-					ui.Eval(`document.querySelector('.player-controls__artists').innerText='` + html.EscapeString(ta.String()) + `\n\n` + html.EscapeString(albumInfo) + `'`)
+					ui.Eval(`document.querySelector('.slider__item_playing div span').title="` + albumInfo + `"`)
+					ui.Eval(`document.querySelector('.player-controls__artists').innerText='` + ta.String() + `\n\n` + albumInfo + `'`)
 
 				}
+			}
+
+			if playingNow != "" && playingNow != trackInfo {
 
 				// https://developer.gnome.org/notification-spec/
 
@@ -202,12 +208,12 @@ func updateImageFile(url, imgFile string) error {
 		return err
 	}
 	defer res.Body.Close()
-	bb, err := ioutil.ReadAll(res.Body)
+	bb, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(imgFile, bb, 0o644)
+	err = os.WriteFile(imgFile, bb, 0o644)
 	if err != nil {
 		return err
 	}

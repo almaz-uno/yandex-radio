@@ -69,7 +69,7 @@ func (t *track) String() string {
 	return pretty.Sprint(t)
 }
 
-var albumFromCover = regexp.MustCompile(`^url\("//avatars.yandex.net/get-music-content/\d+/.+\.a\.(\d+)-1/600x600"\)$`)
+var albumFromCover = regexp.MustCompile(`^url\("//avatars.yandex.net/get-music-content/\d+/.+\.a\.(\d+)-\d+/600x600"\)$`)
 
 func main() {
 	pflag.Parse()

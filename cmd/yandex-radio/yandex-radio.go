@@ -153,13 +153,12 @@ func doMain(args []string) error {
 						logrus.WithError(err).Warnf("Unable to acquire album info for album %s", albumID)
 					} else {
 						logrus.WithField("tr", al).Info("Album playing now")
+
+						albumInfo = fmt.Sprintf("%s (%d)", al.Title, al.Year)
+
+						ui.Eval(`document.querySelector('.slider__item_playing div span').title="` + albumInfo + `"`)
+						ui.Eval(`document.querySelector('.player-controls__artists').innerText='` + ta.String() + `\n\n` + albumInfo + `'`)
 					}
-
-					albumInfo = fmt.Sprintf("%s (%d)", al.Title, al.Year)
-
-					ui.Eval(`document.querySelector('.slider__item_playing div span').title="` + albumInfo + `"`)
-					ui.Eval(`document.querySelector('.player-controls__artists').innerText='` + ta.String() + `\n\n` + albumInfo + `'`)
-
 				}
 			}
 
@@ -224,11 +223,11 @@ func updateImageFile(url, imgFile string) error {
 func getAlbumInfo(albumID string) (*album, error) {
 	albumURL := albumApiURL + albumID
 	res, err := http.Get(albumURL)
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
 	if err != nil {
 		return nil, err
+	}
+	if res.Body != nil {
+		defer res.Body.Close()
 	}
 
 	alinf := new(struct {
